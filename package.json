@@ -1,0 +1,53 @@
+{
+  "name": "electron-theme-mode",
+  "version": "1.0.0",
+  "description": "开箱即用的 Electron 暗黑模式支持，整合 DarkReader 与 Electron 生态，提供亮色/暗色/跟随系统三模切换。",
+  "keywords": [
+    "electron",
+    "dark-mode",
+    "dark-reader",
+    "theme",
+    "darkreader",
+    "electron-plugin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./main": {
+      "types": "./dist/main/index.d.ts",
+      "import": "./dist/main/index.mjs",
+      "require": "./dist/main/index.cjs"
+    },
+    "./preload": {
+      "types": "./dist/preload/index.d.ts",
+      "import": "./dist/preload/index.mjs",
+      "require": "./dist/preload/index.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "main": ["./dist/main/index.d.ts"],
+      "preload": ["./dist/preload/index.d.ts"]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "electron": ">=15.0.0"
+  },
+  "dependencies": {
+    "darkreader": "^4.9.120"
+  },
+  "devDependencies": {
+    "electron": "^36.3.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  }
+}

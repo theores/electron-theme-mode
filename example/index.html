@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>electron-theme-mode</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    h1 { margin-bottom: 16px; }
+    h2 { margin-bottom: 10px; font-size: 16px; color: #555; }
+    h3 { margin-bottom: 8px; font-size: 14px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      padding: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .card.blue { background: #e3f2fd; border-color: #90caf9; }
+    .card.green { background: #e8f5e9; border-color: #a5d6a7; }
+    .card.orange { background: #fff3e0; border-color: #ffcc80; }
+    .card.red { background: #ffebee; border-color: #ef9a9a; }
+    .card.purple { background: #f3e5f5; border-color: #ce93d8; }
+    .card.yellow { background: #fffde7; border-color: #fff59d; }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    button {
+      padding: 8px 16px;
+      border: 1px solid #999;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      background: #f5f5f5;
+    }
+    button:hover { background: #e0e0e0; }
+    button.active { background: #1976d2; color: white; border-color: #1976d2; }
+    button.reset-btn { margin-left: auto; background: #ff5252; color: white; border-color: #ff5252; }
+    button.reset-btn:hover { background: #d32f2f; }
+
+    .slider-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .slider-row label { min-width: 60px; font-size: 13px; }
+    .slider-row input[type="range"] { flex: 1; }
+    .slider-row span { min-width: 28px; text-align: right; font-size: 13px; font-family: monospace; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; font-size: 13px; }
+    th { background: #f0f0f0; font-weight: 600; }
+    tr:nth-child(even) { background: #fafafa; }
+
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600; color: white;
+    }
+    .badge.success { background: #4caf50; }
+    .badge.warning { background: #ff9800; }
+    .badge.error { background: #f44336; }
+    .badge.info { background: #2196f3; }
+
+    .color-swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .swatch {
+      width: 40px; height: 40px; border-radius: 6px; border: 1px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .avatar {
+      width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
+      border: 2px solid #ddd;
+    }
+
+    .progress-bar {
+      height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 6px;
+    }
+    .progress-bar .fill { height: 100%; border-radius: 4px; }
+
+    a { color: #1976d2; }
+    a:visited { color: #7b1fa2; }
+
+    code {
+      background: #f5f5f5; padding: 2px 6px; border-radius: 3px;
+      font-size: 12px; font-family: 'Consolas', 'Courier New', monospace;
+      border: 1px solid #e0e0e0;
+    }
+    pre {
+      background: #263238; color: #eeffff; padding: 12px;
+      border-radius: 6px; overflow-x: auto; font-size: 13px; margin-top: 8px;
+    }
+    pre .keyword { color: #c792ea; }
+    pre .string { color: #c3e88d; }
+    pre .comment { color: #546e7a; }
+    pre .func { color: #82aaff; }
+
+    input[type="text"], input[type="email"], textarea, select {
+      padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 13px; width: 100%; margin-top: 4px;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .alert {
+      padding: 12px 16px; border-radius: 6px; margin-top: 8px; font-size: 13px;
+    }
+    .alert.info { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .alert.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .alert.warning { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+    .alert.danger { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+    .iframe-container { margin-top: 8px; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; }
+    .iframe-container iframe { width: 100%; height: 200px; border: none; }
+
+    #status {
+      margin-top: 16px; padding: 12px; border-radius: 6px;
+      background: #f5f5f5; font-family: monospace; font-size: 12px;
+      white-space: pre-wrap; max-height: 120px; overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin: 2px; }
+  </style>
+</head>
+<body>
+  <h1>electron-theme-mode</h1>
+
+  <!-- 控制面板 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <h2>Theme Controls</h2>
+    <div class="btn-group">
+      <button id="btn-light" onclick="setMode('light')">Light</button>
+      <button id="btn-dark" onclick="setMode('dark')">Dark</button>
+      <button id="btn-system" onclick="setMode('system')">System</button>
+      <button class="reset-btn" onclick="resetTheme()">Reset</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
+      <div>
+        <h3>基础调节 (Basic)</h3>
+        <div class="slider-row">
+          <label title="调整页面整体亮度">亮度</label>
+          <input type="range" id="brightness" min="0" max="200" value="100" oninput="updateSlider()">
+          <span id="brightness-val">100</span>
+        </div>
+        <div class="slider-row">
+          <label title="调整颜色对比度">对比度</label>
+          <input type="range" id="contrast" min="0" max="200" value="100" oninput="updateSlider()">
+          <span id="contrast-val">100</span>
+        </div>
+        <div class="slider-row">
+          <label title="增加灰色色调">灰度</label>
+          <input type="range" id="grayscale" min="0" max="100" value="0" oninput="updateSlider()">
+          <span id="grayscale-val">0</span>
+        </div>
+        <div class="slider-row">
+          <label title="增加褐色/复古色调">褐色</label>
+          <input type="range" id="sepia" min="0" max="100" value="0" oninput="updateSlider()">
+          <span id="sepia-val">0</span>
+        </div>
+        <div class="slider-row">
+          <label title="为文字添加描边，增强清晰度">文字描边</label>
+          <input type="range" id="textStroke" min="0" max="1" step="0.1" value="0" oninput="updateSlider()">
+          <span id="textStroke-val">0</span>
+        </div>
+        <div class="slider-row">
+          <label title="单独调节图片和视频的亮度">图片亮度</label>
+          <input type="range" id="imageBrightness" min="0" max="200" value="100" oninput="updateSlider()">
+          <span id="imageBrightness-val">100</span>
+        </div>
+        <p style="font-size: 11px; color: #888; margin-top: 4px;">* 图片亮度通过 CSS Fixes 滤镜实现</p>
+      </div>
+
+      <div>
+        <h3>颜色 & 字体 (Color & Font)</h3>
+        <div class="slider-row">
+          <label title="Dynamic: 智能分析CSS; Filter: 简单滤镜反转">渲染模式</label>
+          <select id="drMode" onchange="applyTheme()" style="flex:1;">
+            <option value="1">Dynamic (推荐)</option>
+            <option value="0">Filter (滤镜)</option>
+          </select>
+        </div>
+        <div class="slider-row">
+          <label title="暗色模式下的背景基准色">暗色背景</label>
+          <input type="color" id="bgColor" value="#181a1b" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="暗色模式下的文字基准色">暗色文字</label>
+          <input type="color" id="textColor" value="#e8e6e3" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="仅当页面有 prefers-color-scheme: light 媒体查询时生效">亮色媒体背景</label>
+          <input type="color" id="lightBgColor" value="#dcdad7" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="仅当页面有 prefers-color-scheme: light 媒体查询时生效">亮色媒体文字</label>
+          <input type="color" id="lightTextColor" value="#181a1b" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="自定义滚动条颜色">滚动条颜色</label>
+          <input type="color" id="scrollbarColor" value="#546e7a" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="设置鼠标选中文字时的高亮颜色 (请在设置后选中文字测试)">文字选中色</label>
+          <input type="color" id="selectionColor" value="#004daa" oninput="applyTheme()">
+        </div>
+        <div class="slider-row">
+          <label title="强制使用的自定义字体">字体名称</label>
+          <select id="fontFamily" onchange="applyTheme()" style="flex:1;">
+            <option value="">默认</option>
+            <option value="Microsoft YaHei">微软雅黑</option>
+            <option value="SimSun">宋体</option>
+            <option value="KaiTi">楷体</option>
+            <option value="Arial">Arial</option>
+            <option value="Helvetica">Helvetica</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Consolas">Consolas</option>
+            <option value="Courier New">Courier New</option>
+          </select>
+        </div>
+        <div class="slider-row">
+          <label><input type="checkbox" id="useFont" onchange="applyTheme()"> 启用自定义字体</label>
+        </div>
+        <div class="slider-row">
+          <label title="是否美化复选框、单选框等原生控件"><input type="checkbox" id="styleSystemControls" checked onchange="applyTheme()"> 应用于系统控件</label>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 10px;">
+      <h3>修复选项 (Fixes)</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label style="font-size:13px;" title="不处理这些 URL 下的样式表 (每行一个域名)">忽略 CSS URL</label>
+          <textarea id="ignoreCSSUrl" placeholder="例如: fonts.googleapis.com" oninput="applyTheme()" style="min-height:50px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:13px;" title="强制进行颜色反转的选择器 (用于修复某些背景图图标)">反色选择器</label>
+          <textarea id="invertSelectors" placeholder="例如: .icon-sprite" oninput="applyTheme()" style="min-height:50px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:13px;" title="不处理带有这些 class 的内联样式">忽略内联样式</label>
+          <textarea id="ignoreInlineStyle" placeholder="例如: .dynamic-el" oninput="applyTheme()" style="min-height:50px;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:13px;" title="不对这些图片进行颜色分析 (保持原样)">忽略图片分析</label>
+          <textarea id="ignoreImageAnalysis" placeholder="例如: .hero-img" oninput="applyTheme()" style="min-height:50px;"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:6px;">
+        <label style="font-size:13px;" title="如果页面渲染异常，尝试开启此项"><input type="checkbox" id="disableStyleSheetsProxy" onchange="applyTheme()"> 禁用样式代理 (StyleSheets Proxy)</label>
+      </div>
+      <label style="font-size:13px; margin-top:6px; display:block;">自定义注入 CSS</label>
+      <textarea id="customCSS" placeholder="例如: body { font-size: 14px; }" oninput="applyTheme()"></textarea>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- 彩色卡片 -->
+    <div class="card blue">
+      <h3>蓝色卡片</h3>
+      <p>蓝色背景卡片，用于测试 DarkReader 的颜色处理。</p>
+      <div class="badge info">信息</div>
+      <div class="badge success">成功</div>
+    </div>
+    <div class="card green">
+      <h3>绿色卡片</h3>
+      <p>操作成功完成！ <a href="#">查看详情</a></p>
+      <div class="progress-bar"><div class="fill" style="width:75%; background: #4caf50;"></div></div>
+    </div>
+    <div class="card orange">
+      <h3>橙色卡片</h3>
+      <p>警告：请检查以下内容。</p>
+      <div class="badge warning">警告</div>
+      <div class="badge error">严重</div>
+    </div>
+    <div class="card red">
+      <h3>红色卡片</h3>
+      <p>错误：<code>ERR_CONNECTION_REFUSED</code></p>
+      <div class="progress-bar"><div class="fill" style="width:30%; background: #f44336;"></div></div>
+    </div>
+    <div class="card purple">
+      <h3>紫色卡片</h3>
+      <p>优雅的紫色设计。 <span class="tag" style="background:#9c27b0;color:white;">标签</span><span class="tag" style="background:#e1bee7;color:#4a148c;">亮色标签</span></p>
+    </div>
+    <div class="card yellow">
+      <h3>黄色卡片</h3>
+      <p>阳光色彩。当前时间：<strong id="time"></strong></p>
+    </div>
+
+    <!-- 调色板 -->
+    <div class="card">
+      <h3>标准调色板</h3>
+      <div class="color-swatches">
+        <div class="swatch" style="background:#f44336;">R</div>
+        <div class="swatch" style="background:#e91e63;">P</div>
+        <div class="swatch" style="background:#9c27b0;">V</div>
+        <div class="swatch" style="background:#3f51b5;">I</div>
+        <div class="swatch" style="background:#2196f3;">B</div>
+        <div class="swatch" style="background:#00bcd4;">C</div>
+        <div class="swatch" style="background:#4caf50;">G</div>
+        <div class="swatch" style="background:#ffeb3b;color:#333;text-shadow:none;">Y</div>
+        <div class="swatch" style="background:#ff9800;">O</div>
+        <div class="swatch" style="background:#795548;">Br</div>
+        <div class="swatch" style="background:#607d8b;">Gr</div>
+        <div class="swatch" style="background:#000;">Bk</div>
+      </div>
+      <div class="color-swatches" style="margin-top:6px;">
+        <div class="swatch" style="background:linear-gradient(135deg,#667eea,#764ba2);">渐变</div>
+        <div class="swatch" style="background:linear-gradient(135deg,#f093fb,#f5576c);">渐变</div>
+        <div class="swatch" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">渐变</div>
+        <div class="swatch" style="background:linear-gradient(135deg,#43e97b,#38f9d7);">渐变</div>
+      </div>
+    </div>
+
+    <!-- 表格 -->
+    <div class="card">
+      <h3>数据表格</h3>
+      <table>
+        <thead>
+          <tr><th>任务名称</th><th>状态</th><th>进度</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>任务 A</td><td><span class="badge success">已完成</span></td><td>100%</td></tr>
+          <tr><td>任务 B</td><td><span class="badge warning">进行中</span></td><td>65%</td></tr>
+          <tr><td>任务 C</td><td><span class="badge error">已失败</span></td><td>12%</td></tr>
+          <tr><td>任务 D</td><td><span class="badge info">待处理</span></td><td>0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 代码 -->
+    <div class="card">
+      <h3>代码块示例</h3>
+      <pre><span class="comment">// electron-theme-mode 使用示例</span>
+<span class="keyword">import</span> { <span class="func">initTheme</span> } <span class="keyword">import</span> <span class="string">'electron-theme-mode/main'</span>
+
+<span class="func">initTheme</span>()
+
+window.themeMode.<span class="func">setTheme</span>({
+  mode: <span class="string">'dark'</span>,
+  darkReader: { brightness: <span class="string">100</span> }
+})</pre>
+    </div>
+
+    <!-- 图片 -->
+    <div class="card">
+      <h3>图片测试 (使用图片亮度滑块)</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <img class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar 1">
+        <img class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="Avatar 2">
+        <img class="avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" alt="Avatar 3">
+        <img src="https://placehold.co/120x80/4CAF50/ffffff?text=Green" alt="green" style="border-radius:6px;">
+        <img src="https://placehold.co/120x80/2196F3/ffffff?text=Blue" alt="blue" style="border-radius:6px;">
+        <img src="https://placehold.co/120x80/FF9800/ffffff?text=Orange" alt="orange" style="border-radius:6px;">
+      </div>
+    </div>
+
+    <!-- 表单 -->
+    <div class="card">
+      <h3>表单元素</h3>
+      <input type="text" placeholder="文本输入框" style="margin-bottom:6px;">
+      <select style="margin-bottom:6px;">
+        <option>选项 1</option>
+        <option>选项 2</option>
+        <option>选项 3</option>
+      </select>
+      <textarea placeholder="多行文本输入..."></textarea>
+      <div style="margin-top:8px; display:flex; gap:12px; align-items:center;">
+        <label><input type="checkbox" checked> 复选框</label>
+        <label><input type="radio" name="r" checked> 单选 A</label>
+        <label><input type="radio" name="r"> 单选 B</label>
+      </div>
+    </div>
+
+    <!-- 警告框 -->
+    <div class="card">
+      <h3>警告与提示</h3>
+      <div class="alert info">提示：这是一条一般信息提示。</div>
+      <div class="alert success">成功：操作已成功完成！</div>
+      <div class="alert warning">警告：检测到潜在风险。</div>
+      <div class="alert danger">错误：发生严重系统错误。</div>
+    </div>
+
+    <!-- iframe -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <h3>iframe 内嵌测试</h3>
+      <div class="iframe-container">
+        <iframe src="https://example.com" title="示例页面"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div id="status">正在加载主题状态...</div>
+
+  <script>
+    let currentMode = 'light'
+
+    // Default values for reset
+    const DEFAULTS = {
+      brightness: 100, contrast: 100, grayscale: 0, sepia: 0,
+      textStroke: 0, imageBrightness: 100,
+      bgColor: '#181a1b', textColor: '#e8e6e3', scrollbarColor: '#546e7a',
+      fontFamily: '', useFont: false, customCSS: ''
+    }
+
+    async function init() {
+      try {
+        const state = await window.themeMode.getTheme()
+        currentMode = state.mode
+        updateStatus(state)
+        updateActiveButton(state.mode)
+
+        if (state.darkReader) {
+          const dr = state.darkReader
+          const sliders = ['brightness', 'contrast', 'grayscale', 'sepia', 'textStroke']
+          sliders.forEach(id => {
+            if (dr[id] != null) {
+              document.getElementById(id).value = dr[id]
+              document.getElementById(id + '-val').textContent = dr[id]
+            }
+          })
+
+          if (dr.darkSchemeBackgroundColor) document.getElementById('bgColor').value = dr.darkSchemeBackgroundColor
+          if (dr.darkSchemeTextColor) document.getElementById('textColor').value = dr.darkSchemeTextColor
+          if (dr.scrollbarColor) document.getElementById('scrollbarColor').value = dr.scrollbarColor
+          if (dr.fontFamily) document.getElementById('fontFamily').value = dr.fontFamily
+          if (dr.useFont != null) document.getElementById('useFont').checked = dr.useFont
+        }
+        if (state.fixes && state.fixes.css) {
+          // Extract imageBrightness from stored CSS if present
+          const match = state.fixes.css.match(/filter:\s*brightness\((\d+)%\)/)
+          if (match) {
+            document.getElementById('imageBrightness').value = match[1]
+            document.getElementById('imageBrightness-val').textContent = match[1]
+          }
+          // Show only non-image CSS in textarea
+          const cleanCSS = state.fixes.css.replace(/img,\s*video,\s*picture,\s*canvas\s*\{[^}]*\}\s*/g, '').trim()
+          document.getElementById('customCSS').value = cleanCSS
+        }
+      } catch (err) {
+        document.getElementById('status').textContent = 'Error: ' + err.message
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode
+      applyTheme()
+    }
+
+    function updateSlider() {
+      const ids = ['brightness', 'contrast', 'grayscale', 'sepia', 'textStroke', 'imageBrightness']
+      ids.forEach(id => {
+        const val = document.getElementById(id).value
+        document.getElementById(id + '-val').textContent = val
+      })
+      applyTheme()
+    }
+
+    function applyTheme() {
+      const imgBright = parseInt(document.getElementById('imageBrightness').value)
+      const userCSS = document.getElementById('customCSS').value.trim()
+
+      // Build image brightness CSS
+      let fixCSS = ''
+      if (imgBright !== 100) {
+        fixCSS += 'img, video, picture, canvas { filter: brightness(' + imgBright + '%) !important; } '
+      }
+      if (userCSS) {
+        fixCSS += userCSS
+      }
+
+      // Parse array fields from textareas
+      const parseLines = (id) => {
+        const t = document.getElementById(id).value.trim()
+        return t ? t.split('\n').map(s => s.trim()).filter(Boolean) : undefined
+      }
+
+      const config = {
+        mode: currentMode,
+        darkReader: {
+          mode: parseInt(document.getElementById('drMode').value),
+          brightness: parseInt(document.getElementById('brightness').value),
+          contrast: parseInt(document.getElementById('contrast').value),
+          grayscale: parseInt(document.getElementById('grayscale').value),
+          sepia: parseInt(document.getElementById('sepia').value),
+          textStroke: parseFloat(document.getElementById('textStroke').value),
+          darkSchemeBackgroundColor: document.getElementById('bgColor').value,
+          darkSchemeTextColor: document.getElementById('textColor').value,
+          lightSchemeBackgroundColor: document.getElementById('lightBgColor').value,
+          lightSchemeTextColor: document.getElementById('lightTextColor').value,
+          scrollbarColor: document.getElementById('scrollbarColor').value,
+          selectionColor: document.getElementById('selectionColor').value,
+          fontFamily: document.getElementById('fontFamily').value,
+          useFont: document.getElementById('useFont').checked,
+          styleSystemControls: document.getElementById('styleSystemControls').checked,
+        },
+        fixes: {
+          css: fixCSS || undefined,
+          ignoreCSSUrl: parseLines('ignoreCSSUrl'),
+          invert: parseLines('invertSelectors'),
+          ignoreInlineStyle: parseLines('ignoreInlineStyle'),
+          ignoreImageAnalysis: parseLines('ignoreImageAnalysis'),
+          disableStyleSheetsProxy: document.getElementById('disableStyleSheetsProxy').checked || undefined,
+        }
+      }
+      window.themeMode.setTheme(config)
+      updateActiveButton(currentMode)
+    }
+
+    function resetTheme() {
+      // Reset all UI controls to defaults
+      document.getElementById('brightness').value = DEFAULTS.brightness
+      document.getElementById('brightness-val').textContent = DEFAULTS.brightness
+      document.getElementById('contrast').value = DEFAULTS.contrast
+      document.getElementById('contrast-val').textContent = DEFAULTS.contrast
+      document.getElementById('grayscale').value = DEFAULTS.grayscale
+      document.getElementById('grayscale-val').textContent = DEFAULTS.grayscale
+      document.getElementById('sepia').value = DEFAULTS.sepia
+      document.getElementById('sepia-val').textContent = DEFAULTS.sepia
+      document.getElementById('textStroke').value = DEFAULTS.textStroke
+      document.getElementById('textStroke-val').textContent = DEFAULTS.textStroke
+      document.getElementById('imageBrightness').value = DEFAULTS.imageBrightness
+      document.getElementById('imageBrightness-val').textContent = DEFAULTS.imageBrightness
+      document.getElementById('bgColor').value = DEFAULTS.bgColor
+      document.getElementById('textColor').value = DEFAULTS.textColor
+      document.getElementById('scrollbarColor').value = DEFAULTS.scrollbarColor
+      document.getElementById('selectionColor').value = '#004daa'
+      document.getElementById('lightBgColor').value = '#dcdad7'
+      document.getElementById('lightTextColor').value = '#181a1b'
+      document.getElementById('drMode').value = '1'
+      document.getElementById('fontFamily').value = DEFAULTS.fontFamily
+      document.getElementById('useFont').checked = DEFAULTS.useFont
+      document.getElementById('styleSystemControls').checked = true
+      document.getElementById('customCSS').value = DEFAULTS.customCSS
+      document.getElementById('ignoreCSSUrl').value = ''
+      document.getElementById('invertSelectors').value = ''
+      document.getElementById('ignoreInlineStyle').value = ''
+      document.getElementById('ignoreImageAnalysis').value = ''
+      document.getElementById('disableStyleSheetsProxy').checked = false
+      currentMode = 'light'
+      updateActiveButton('light')
+
+      // Call plugin reset
+      window.themeMode.resetTheme()
+    }
+
+    function updateActiveButton(mode) {
+      document.querySelectorAll('.btn-group button:not(.reset-btn)').forEach(b => b.classList.remove('active'))
+      const btn = document.getElementById('btn-' + mode)
+      if (btn) btn.classList.add('active')
+    }
+
+    function updateStatus(state) {
+      document.getElementById('status').textContent = JSON.stringify(state, null, 2)
+    }
+
+    window.themeMode.onThemeChanged((state) => {
+      updateStatus(state)
+      updateActiveButton(state.mode)
+    })
+
+    setInterval(() => {
+      document.getElementById('time').textContent = new Date().toLocaleTimeString()
+    }, 1000)
+
+    init()
+  </script>
+</body>
+</html>
