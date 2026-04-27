@@ -50,13 +50,20 @@ jobs:
         if: steps.prep.outputs.publish == 'true'
         run: npm run build
 
+      # 1. 先在本地打标签，这样 conventional-changelog 就能识别到当前版本
+      - name: Create Local Tag
+        if: steps.prep.outputs.publish == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag v${{ steps.prep.outputs.version }}
+
+      # 2. 此时执行日志生成，它会包含到 v${{ steps.prep.outputs.version }} 为止的所有提交
       - name: Generate Changelog
         if: steps.prep.outputs.publish == 'true'
         id: changelog
         run: |
-          # 使用 npx 直接运行 conventional-changelog 提取当前版本的增量日志
           npx conventional-changelog-cli -p angular -r 1 > LATEST_CHANGELOG.md
-          # 处理多行输出到 GitHub Output
           {
             echo 'body<<EOF'
             cat LATEST_CHANGELOG.md
@@ -72,12 +79,10 @@ jobs:
           registry: https://registry.npmjs.org/
           access: public
 
-      - name: Create Git Tag
+      # 3. 发布成功后，才将标签推送到远程仓库
+      - name: Push Git Tag
         if: steps.publish.outputs.type != 'none' && steps.publish.outputs.type != ''
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag v${{ steps.prep.outputs.version }}
           git push origin v${{ steps.prep.outputs.version }}
 
       - name: Create GitHub Release
