@@ -98,6 +98,39 @@ initTheme({
 });
 ```
 
+### 精细化页面修复示例
+通过 `fixes` 配置，您可以解决特定元素在暗黑模式下显示不佳的问题：
+
+#### 强制反色 (Force Invert)
+适用于那些在暗色背景下看不清的深色图标或元素。
+```javascript
+window.themeMode.setTheme({
+  mode: 'dark',
+  fixes: {
+    invert: ['.sidebar-icon', '.logo-dark'] // 这些选择器将被强制反转颜色
+  }
+});
+```
+
+#### 忽略转换 (Ignore Conversion)
+如果您希望某个区域保持原始的亮色外观（例如颜色选择器或预览区）：
+```javascript
+window.themeMode.setTheme({
+  mode: 'dark',
+  fixes: {
+    // 方式 A: 通过注入 CSS 覆盖颜色（最推荐，最稳定）
+    css: `
+      .keep-light-zone { 
+        background-color: #ffffff !important; 
+        color: #333333 !important; 
+      }
+    `,
+    // 方式 B: 忽略该区域的内联样式处理
+    ignoreInlineStyle: ['.keep-light-zone']
+  }
+});
+```
+
 ---
 
 ## 📖 API 参考

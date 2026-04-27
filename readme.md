@@ -88,6 +88,39 @@ setTheme({ mode: 'system' });
 resetTheme();
 ```
 
+### Advanced Page Fixes
+Use the `fixes` configuration to solve display issues for specific elements:
+
+#### Force Invert
+Useful for dark icons or elements that are hard to see on dark backgrounds.
+```javascript
+window.themeMode.setTheme({
+  mode: 'dark',
+  fixes: {
+    invert: ['.sidebar-icon', '.logo-dark'] // These selectors will be forced to invert
+  }
+});
+```
+
+#### Ignore Conversion
+Keep a specific area in its original light appearance (e.g., color pickers or preview zones):
+```javascript
+window.themeMode.setTheme({
+  mode: 'dark',
+  fixes: {
+    // Option A: Override colors by injecting CSS (Recommended)
+    css: `
+      .keep-light-zone { 
+        background-color: #ffffff !important; 
+        color: #333333 !important; 
+      }
+    `,
+    // Option B: Ignore inline style processing for the area
+    ignoreInlineStyle: ['.keep-light-zone']
+  }
+});
+```
+
 ---
 
 ## 📖 API Reference
