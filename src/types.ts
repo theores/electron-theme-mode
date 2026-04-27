@@ -89,7 +89,7 @@ export interface InitThemeOptions {
 /** 暴露给渲染进程的 API 接口 */
 export interface ThemeModeAPI {
   /** 设置主题模式和选项 */
-  setTheme: (config: ThemeConfig) => void
+  setTheme: (config: Partial<ThemeConfig>) => void
   /** 获取当前主题状态 */
   getTheme: () => Promise<ThemeState>
   /** 重置主题为默认配置 */

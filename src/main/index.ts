@@ -18,6 +18,31 @@ import {
 /** 默认主题配置 */
 const DEFAULT_CONFIG: ThemeConfig = { mode: 'light' }
 
+/**
+ * 深度合并配置对象（仅合并普通对象，数组直接覆盖）
+ */
+function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+  const result = { ...target }
+  for (const key of Object.keys(source) as (keyof T)[]) {
+    const sourceVal = source[key]
+    const targetVal = target[key]
+    if (
+      sourceVal !== undefined &&
+      sourceVal !== null &&
+      typeof sourceVal === 'object' &&
+      !Array.isArray(sourceVal) &&
+      typeof targetVal === 'object' &&
+      targetVal !== null &&
+      !Array.isArray(targetVal)
+    ) {
+      result[key] = deepMerge(targetVal as any, sourceVal as any)
+    } else if (sourceVal !== undefined) {
+      result[key] = sourceVal as any
+    }
+  }
+  return result
+}
+
 /** 内置 JSON 文件存储 */
 class DefaultStore implements StoreAdapter {
   private filePath: string
@@ -128,8 +153,8 @@ export function initTheme(options?: InitThemeOptions): void {
   })
 
   // IPC：设置主题
-  ipcMain.on(IPC_SET_THEME, (_, config: ThemeConfig) => {
-    currentConfig = { ...DEFAULT_CONFIG, ...config }
+  ipcMain.on(IPC_SET_THEME, (_, config: Partial<ThemeConfig>) => {
+    currentConfig = deepMerge(currentConfig, config)
     store.set(currentConfig)
     nativeTheme.themeSource = currentConfig.mode
     broadcastThemeChange()
@@ -165,8 +190,8 @@ export function initTheme(options?: InitThemeOptions): void {
  * 主进程直接设置主题（无需通过 IPC）
  * @param config 主题配置
  */
-export function setTheme(config: ThemeConfig): void {
-  currentConfig = { ...DEFAULT_CONFIG, ...config }
+export function setTheme(config: Partial<ThemeConfig>): void {
+  currentConfig = deepMerge(currentConfig, config)
   store.set(currentConfig)
   nativeTheme.themeSource = currentConfig.mode
   broadcastThemeChange()

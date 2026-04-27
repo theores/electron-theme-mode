@@ -124,9 +124,9 @@ ipcRenderer.on(IPC_THEME_CHANGED, (_, state: ThemeState) => {
  */
 export const themeMode: ThemeModeAPI = {
   /**
-   * 设置主题模式和选项
+   * 设置主题（仅传入需要变更的字段）
    */
-  setTheme(config: ThemeConfig): void {
+  setTheme(config: Partial<ThemeConfig>): void {
     ipcRenderer.send(IPC_SET_THEME, config)
   },
 
