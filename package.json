@@ -1,6 +1,6 @@
 {
   "name": "electron-theme-mode",
-  "version": "1.0.1-beta.1",
+  "version": "1.0.1-beta.2",
   "description": "开箱即用的 Electron 暗黑模式支持，整合 DarkReader 与 Electron 生态，提供亮色/暗色/跟随系统三模切换。",
   "keywords": [
     "electron",
