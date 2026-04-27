@@ -70,11 +70,29 @@ class DefaultStore implements StoreAdapter {
   }
 }
 
+/** 合法的模式值 */
+const VALID_MODES = ['light', 'dark', 'system'] as const
+
 /** 当前配置 */
 let currentConfig: ThemeConfig = { ...DEFAULT_CONFIG }
 
 /** 存储适配器 */
 let store: StoreAdapter
+
+/**
+ * 校验并应用配置变更（统一入口，防止无效值导致崩溃）
+ */
+function applyConfig(config: Partial<ThemeConfig>): void {
+  // 校验 mode 值
+  if (config.mode !== undefined && !VALID_MODES.includes(config.mode as any)) {
+    console.warn(`[electron-theme-mode] 无效的 mode 值: "${config.mode}"，已忽略。合法值: ${VALID_MODES.join(', ')}`)
+    delete config.mode
+  }
+  currentConfig = deepMerge(currentConfig, config)
+  store.set(currentConfig)
+  nativeTheme.themeSource = currentConfig.mode
+  broadcastThemeChange()
+}
 
 /**
  * 解析当前是否处于暗色模式
@@ -154,10 +172,7 @@ export function initTheme(options?: InitThemeOptions): void {
 
   // IPC：设置主题
   ipcMain.on(IPC_SET_THEME, (_, config: Partial<ThemeConfig>) => {
-    currentConfig = deepMerge(currentConfig, config)
-    store.set(currentConfig)
-    nativeTheme.themeSource = currentConfig.mode
-    broadcastThemeChange()
+    applyConfig(config)
   })
 
   // IPC：重置主题
@@ -191,10 +206,7 @@ export function initTheme(options?: InitThemeOptions): void {
  * @param config 主题配置
  */
 export function setTheme(config: Partial<ThemeConfig>): void {
-  currentConfig = deepMerge(currentConfig, config)
-  store.set(currentConfig)
-  nativeTheme.themeSource = currentConfig.mode
-  broadcastThemeChange()
+  applyConfig(config)
 }
 
 /**
