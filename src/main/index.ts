@@ -157,6 +157,11 @@ export function initTheme(options?: InitThemeOptions): void {
   // 从存储中恢复配置
   const saved = store.get()
   if (saved) {
+    // 启动时校验磁盘配置，防止无效值导致崩溃
+    if (saved.mode && !VALID_MODES.includes(saved.mode as any)) {
+      console.warn(`[electron-theme-mode] 磁盘配置文件中包含无效的 mode: "${saved.mode}"，已重置为默认值。`)
+      saved.mode = DEFAULT_CONFIG.mode
+    }
     currentConfig = saved
   }
 
