@@ -1,0 +1,91 @@
+name: Publish to NPM
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # 允许手动触发
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 拉取完整历史，用于提取日志
+
+      - name: Prepare publish info
+        id: prep
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # 检查当前版本号是否已经有对应的 Git Tag
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists. Skipping publish."
+            echo "publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Tag v$VERSION does not exist. Proceeding with publish."
+            echo "publish=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        if: steps.prep.outputs.publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install Dependencies
+        if: steps.prep.outputs.publish == 'true'
+        run: npm install
+
+      - name: Build Package
+        if: steps.prep.outputs.publish == 'true'
+        run: npm run build
+
+      - name: Generate Changelog
+        if: steps.prep.outputs.publish == 'true'
+        id: changelog
+        run: |
+          # 使用 npx 直接运行 conventional-changelog 提取当前版本的增量日志
+          npx conventional-changelog-cli -p angular -r 1 > LATEST_CHANGELOG.md
+          # 处理多行输出到 GitHub Output
+          {
+            echo 'body<<EOF'
+            cat LATEST_CHANGELOG.md
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish to NPM
+        if: steps.prep.outputs.publish == 'true'
+        id: publish
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          registry: https://registry.npmjs.org/
+          access: public
+
+      - name: Create Git Tag
+        if: steps.publish.outputs.type != 'none' && steps.publish.outputs.type != ''
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag v${{ steps.prep.outputs.version }}
+          git push origin v${{ steps.prep.outputs.version }}
+
+      - name: Create GitHub Release
+        if: steps.publish.outputs.type != 'none' && steps.publish.outputs.type != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.prep.outputs.version }}
+          name: v${{ steps.prep.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{ contains(steps.prep.outputs.version, 'beta') || contains(steps.prep.outputs.version, 'alpha') }}
