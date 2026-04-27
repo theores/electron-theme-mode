@@ -1,5 +1,7 @@
 # electron-theme-mode
 
+简体中文 | [English](./README.md)
+
 `electron-theme-mode` 是一个为 Electron 应用设计的专业主题管理方案。它深度集成 [DarkReader](https://github.com/darkreader/darkreader)，为您的应用提供工业级的暗黑模式转换能力，并确保应用在启动和运行过程中拥有连贯、一致的视觉体验。
 
 ## 🌟 核心特性
